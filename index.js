@@ -3,22 +3,27 @@ export default {
     const url = new URL(request.url);
     
     // مسار معالجة الطلبات الذكية
-    if (url.pathname === "/chat") {
-      const { message } = await request.json();
-      const apiKey = env.GEMINI_API_KEY; // هنا سيقرأ السيرفر المفتاح الذي سنضعه
-      
-      // كود الربط المباشر مع Google Gemini API
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ parts: [{ text: message }] }] })
-      });
-      
-      const data = await response.json();
-      return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
+    if (url.pathname === "/chat" && request.method === "POST") {
+      try {
+        const { message } = await request.json();
+        const apiKey = env.GEMINI_API_KEY; 
+        
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: message }] }] })
+        });
+        
+        const data = await response.json();
+        return new Response(JSON.stringify(data), { 
+          headers: { "Content-Type": "application/json" } 
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+      }
     }
 
-    // تشغيل الواجهة الرسومية (index.html)
-    return await env.ASSETS.fetch(request);
+    // إذا لم يكن الطلب لـ /chat، حاول تقديم الملفات الثابتة
+    return env.ASSETS.fetch(request);
   }
 };
