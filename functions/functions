@@ -1,38 +1,34 @@
 const fetch = require('node-fetch');
 
 exports.handler = async (event) => {
-    // إعدادات السماح بالاتصال (CORS) لضمان عدم حدوث منع من المتصفح
+    // إعدادات CORS للسماح بالاتصال من موقعك
     const headers = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type",
         "Access-Control-Allow-Methods": "POST, OPTIONS"
     };
 
-    // معالجة طلبات التفتيش الأولية من المتصفح
+    // معالجة طلبات التفتيش (Preflight)
     if (event.httpMethod === "OPTIONS") {
         return { statusCode: 200, headers };
     }
 
     try {
-        // التحقق من وجود بيانات في الطلب
-        if (!event.body) {
-            throw new Error("لا توجد بيانات مرسلة في جسم الطلب");
-        }
-
-        // استخراج الرسالة من الواجهة (تطابق تام مع كود sendMessage الخاص بك)
-        const parsedBody = JSON.parse(event.body);
-        const userMessage = parsedBody.message;
+        // 1. استلام الرسالة والتأكد من وجودها (تطابق مع كود sendMessage الخاص بك)
+        const body = JSON.parse(event.body);
+        const userMessage = body.message;
 
         if (!userMessage) {
-            throw new Error("الرسالة فارغة أو غير موجودة");
+            throw new Error("لم يتم استلام أي رسالة في الطلب");
         }
 
+        // 2. التحقق من وجود مفتاح الـ API
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            throw new Error("مفتاح GEMINI_API_KEY غير مضبوط في Netlify");
+            throw new Error("مفتاح GEMINI_API_KEY غير موجود في إعدادات Netlify");
         }
 
-        // استدعاء النواة الذكية (Gemini API)
+        // 3. الاتصال بنواة Gemini
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -43,8 +39,8 @@ exports.handler = async (event) => {
 
         const data = await response.json();
 
-        // فحص الرد وتنسيقه لإرساله للواجهة
-        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+        // 4. معالجة الرد وإرساله للواجهة
+        if (data.candidates && data.candidates[0].content) {
             const sunReply = data.candidates[0].content.parts[0].text;
             
             return {
@@ -53,8 +49,7 @@ exports.handler = async (event) => {
                 body: JSON.stringify({ reply: sunReply })
             };
         } else {
-            console.error("Gemini Error Detail:", data);
-            throw new Error("رد غير متوقع من النواة الذكية");
+            throw new Error(data.error?.message || "فشل النظام في توليد رد");
         }
 
     } catch (error) {
