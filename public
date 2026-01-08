@@ -1,1 +1,51 @@
 index.html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUN V1 - السيادة الرقمية</title>
+    <style>
+        body { background-color: #050505; color: #00ff41; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        #chat-container { width: 80%; max-width: 600px; border: 1px solid #00ff41; padding: 20px; box-shadow: 0 0 20px rgba(0, 255, 65, 0.2); }
+        h1 { font-size: 1.5rem; text-align: center; text-transform: uppercase; letter-spacing: 5px; }
+        #output { height: 300px; overflow-y: auto; margin-bottom: 20px; border-bottom: 1px dashed #00ff41; padding-bottom: 10px; }
+        input { background: transparent; border: 1px solid #00ff41; color: #00ff41; width: 100%; padding: 10px; box-sizing: border-box; outline: none; }
+        .status { font-size: 0.8rem; margin-top: 10px; color: #888; }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <h1>SUN OS V1.0</h1>
+        <div id="output">النظام جاهز للاستخدام... بانتظار الأوامر.</div>
+        <input type="text" id="userInput" placeholder="أدخل أمرك هنا..." onkeypress="handleChat(event)">
+        <div class="status">الحالة: متصل عبر Cloudflare Edge</div>
+    </div>
+
+    <script>
+        async function handleChat(e) {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('userInput');
+                const output = document.getElementById('output');
+                const message = input.value;
+                output.innerHTML += `<div>> ${message}</div>`;
+                input.value = '';
+
+                try {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message })
+                    });
+                    const data = await response.json();
+                    const reply = data.candidates[0].content.parts[0].text;
+                    output.innerHTML += `<div style="color: #fff;">[SUN]: ${reply}</div>`;
+                } catch (err) {
+                    output.innerHTML += `<div style="color: #ff0000;">! خطأ في الاتصال بالنواة</div>`;
+                }
+                output.scrollTop = output.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
