@@ -1,9 +1,0 @@
-{
-  "name": "sun-v1",
-  "main": "index.js",
-  "compatibility_date": "2026-01-08",
-  "assets": {
-    "directory": "./assets",
-    "binding": "ASSETS"
-  }
-}
