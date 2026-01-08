@@ -1,6 +1,0 @@
-python-telegram-bot==20.8
-flask
-httpx
-aiosqlite
-gtts
-psutil
