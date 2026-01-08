@@ -1,37 +1,34 @@
-async function handleChat(e) {
-    if (e.key === 'Enter') {
-        const msg = e.target.value;
-        if (!msg.trim()) return;
+async function sendMessage() {
+    const input = document.getElementById('user-input');
+    const output = document.getElementById('output');
+    const message = input.value.trim();
 
-        const output = document.getElementById('output');
-        // إضافة أمر المستخدم للواجهة
-        output.innerHTML += `<div style="color: #00ff41; margin-top: 10px;">> ${msg}</div>`;
-        e.target.value = '';
+    if (message) {
+        output.innerHTML += `<div class="user-msg"><strong>أنت:</strong> ${message}</div>`;
+        input.value = '';
 
         try {
-            // الاتصال بنقطة النهاية في Netlify
-            const res = await fetch('/.netlify/functions/chat', {
+            const response = await fetch('/.netlify/functions/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: msg })
+                body: JSON.stringify({ message })
             });
 
-            const data = await res.json();
-            
-            if (data.candidates && data.candidates[0].content.parts[0].text) {
-                const reply = data.candidates[0].content.parts[0].text;
-                // تنسيق رد النظام ليظهر بلون أبيض مميز
-                output.innerHTML += `<div style="color: #ffffff; margin-bottom: 15px; padding-right: 10px; border-right: 2px solid #00ff41;">[SUN]: ${reply}</div>`;
+            const data = await response.json();
+
+            if (data.reply) {
+                output.innerHTML += `<div class="sun-msg"><strong>[SUN]:</strong> ${data.reply}</div>`;
+            } else if (data.error) {
+                throw new Error(data.error);
             } else {
-                throw new Error("تنسيق رد غير متوقع");
+                throw new Error("تنسيق رد غير متوقع من النواة");
             }
-
         } catch (err) {
-            output.innerHTML += `<div style="color: #ff4141;">! خطأ في النظام: العقل غير مستجيب. تأكد من إعداد GEMINI_API_KEY في Netlify.</div>`;
-            console.error("Error details:", err);
+            output.innerHTML += `<div class="error-msg">⚠️ خطأ سيادي: ${err.message}</div>`;
+            console.error("تفاصيل الخطأ التقني:", err);
         }
-
-        // النزول التلقائي لآخر رسالة
+        
+        // التمرير التلقائي لأسفل الشاشة
         output.scrollTop = output.scrollHeight;
     }
 }
