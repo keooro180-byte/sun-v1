@@ -1,6 +1,8 @@
-const fetch = require('node-fetch');
-
 exports.handler = async (event) => {
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, body: "Method Not Allowed" };
+  }
+
   try {
     const { message } = JSON.parse(event.body);
     const apiKey = process.env.GEMINI_API_KEY;
@@ -21,7 +23,7 @@ exports.handler = async (event) => {
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "فشل الاتصال بالنواة" })
+      body: JSON.stringify({ error: error.message })
     };
   }
 };
