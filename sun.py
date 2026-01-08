@@ -9,7 +9,7 @@ from flask import Flask
 TOKEN = "8450727870:AAHT7kUZBJ2Mbt6VweXoutkNVFq2OJCFE8I"
 OWNER_ID = 7344005519
 PASSWORD = "ABDULLAH_2026"
-API_KEY = "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"
+API_KEY = "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"
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DB_PATH = "hydra_apex_final.db"
 
