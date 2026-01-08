@@ -1,6 +1,4 @@
-const fetch = require('node-fetch');
-
-exports.handler = async (event) => {
+export const handler = async (event) => {
     const headers = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type",
@@ -33,7 +31,7 @@ exports.handler = async (event) => {
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: "فشل في تشغيل المحرك الذكي" })
+            body: JSON.stringify({ error: "النواة لا تستجيب، تأكد من إعدادات المفتاح" })
         };
     }
 };
