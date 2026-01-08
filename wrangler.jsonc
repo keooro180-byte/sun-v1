@@ -1,10 +1,9 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "sun-v1",
   "main": "index.js",
   "compatibility_date": "2026-01-08",
   "assets": {
-    "directory": "./public",
+    "directory": "./assets",
     "binding": "ASSETS"
   }
 }
