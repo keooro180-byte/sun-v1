@@ -4,31 +4,37 @@ async function sendMessage() {
     const message = input.value.trim();
 
     if (message) {
+        // إظهار رسالة المستخدم فوراً
         output.innerHTML += `<div class="user-msg"><strong>أنت:</strong> ${message}</div>`;
         input.value = '';
 
         try {
+            // استدعاء النواة عبر Netlify
             const response = await fetch('/.netlify/functions/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message })
             });
 
+            if (!response.ok) throw new Error(`فشل الاتصال: ${response.status}`);
+
             const data = await response.json();
 
-            if (data.reply) {
-                output.innerHTML += `<div class="sun-msg"><strong>[SUN]:</strong> ${data.reply}</div>`;
-            } else if (data.error) {
-                throw new Error(data.error);
+            // معالجة الرد بمرونة (سواء كان نصاً مباشراً أو كائناً)
+            const sunReply = data.reply || data.response || (data.candidates && data.candidates[0].content.parts[0].text);
+
+            if (sunReply) {
+                output.innerHTML += `<div class="sun-msg"><strong>[SUN]:</strong> ${sunReply}</div>`;
             } else {
-                throw new Error("تنسيق رد غير متوقع من النواة");
+                throw new Error("تنسيق رد غير معروف");
             }
+
         } catch (err) {
-            output.innerHTML += `<div class="error-msg">⚠️ خطأ سيادي: ${err.message}</div>`;
-            console.error("تفاصيل الخطأ التقني:", err);
+            output.innerHTML += `<div style="color: #ff5555; padding: 10px;">⚠️ خطأ سيادي: ${err.message}</div>`;
+            console.error("Internal System Error:", err);
         }
-        
-        // التمرير التلقائي لأسفل الشاشة
+
+        // النزول التلقائي لآخر رسالة
         output.scrollTop = output.scrollHeight;
     }
 }
