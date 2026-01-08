@@ -1,0 +1,3 @@
+here[build]
+  publish = "."
+  functions = "functions"
