@@ -1,5 +1,2 @@
-python-telegram-bot
+pyTelegramBotAPI
 flask
-psutil
-aiosqlite
-httpx
