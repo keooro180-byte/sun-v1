@@ -2,22 +2,36 @@ async function handleChat(e) {
     if (e.key === 'Enter') {
         const msg = e.target.value;
         if (!msg.trim()) return;
+
         const output = document.getElementById('output');
-        output.innerHTML += '<div class="user-line">> ' + msg + '</div>';
+        // إضافة أمر المستخدم للواجهة
+        output.innerHTML += `<div style="color: #00ff41; margin-top: 10px;">> ${msg}</div>`;
         e.target.value = '';
 
         try {
-            // التعديل هنا: نرسل الطلب إلى مسار Netlify Functions وليس Cloudflare
-            const res = await fetch('/.netlify/functions/chat', { 
-                method: 'POST', 
-                body: JSON.stringify({message: msg}) 
+            // الاتصال بنقطة النهاية في Netlify
+            const res = await fetch('/.netlify/functions/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
             });
+
             const data = await res.json();
-            const reply = data.candidates[0].content.parts[0].text;
-            output.innerHTML += '<div class="sun-line">[SUN]: ' + reply + '</div>';
+            
+            if (data.candidates && data.candidates[0].content.parts[0].text) {
+                const reply = data.candidates[0].content.parts[0].text;
+                // تنسيق رد النظام ليظهر بلون أبيض مميز
+                output.innerHTML += `<div style="color: #ffffff; margin-bottom: 15px; padding-right: 10px; border-right: 2px solid #00ff41;">[SUN]: ${reply}</div>`;
+            } else {
+                throw new Error("تنسيق رد غير متوقع");
+            }
+
         } catch (err) {
-            output.innerHTML += '<div style="color:red;">! خطأ: العقل غير متصل. تأكد من وجود ملف functions/chat.js</div>';
+            output.innerHTML += `<div style="color: #ff4141;">! خطأ في النظام: العقل غير مستجيب. تأكد من إعداد GEMINI_API_KEY في Netlify.</div>`;
+            console.error("Error details:", err);
         }
+
+        // النزول التلقائي لآخر رسالة
         output.scrollTop = output.scrollHeight;
     }
 }
