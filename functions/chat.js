@@ -1,11 +1,28 @@
+const fetch = require('node-fetch');
+
 exports.handler = async (event) => {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
+  // السماح بالاتصال من واجهة الموقع
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 200, headers };
   }
 
   try {
     const { message } = JSON.parse(event.body);
     const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return { 
+        statusCode: 500, 
+        headers, 
+        body: JSON.stringify({ error: "المفتاح غير موجود في إعدادات Netlify" }) 
+      };
+    }
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: "POST",
@@ -16,14 +33,21 @@ exports.handler = async (event) => {
     });
 
     const data = await response.json();
+    
+    // استخراج النص من رد Gemini
+    const reply = data.candidates[0].content.parts[0].text;
+
     return {
       statusCode: 200,
-      body: JSON.stringify(data)
+      headers,
+      body: JSON.stringify({ reply })
     };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+
+  } catch (err) {
+    return { 
+      statusCode: 500, 
+      headers, 
+      body: JSON.stringify({ error: "فشل الاتصال بالنواة الذكية" }) 
     };
   }
 };
